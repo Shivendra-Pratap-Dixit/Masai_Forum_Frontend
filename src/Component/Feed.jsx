@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
+import Loader from './Loader';
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
@@ -13,6 +14,8 @@ const Feed = () => {
     category: '',
     media: ''
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -28,6 +31,14 @@ const Feed = () => {
 
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    // Filter posts based on search query
+    const filteredPosts = posts.filter(post =>
+      post.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setSearchResults(filteredPosts);
+  }, [searchQuery, posts]);
 
   const openModal = () => {
     setModalIsOpen(true);
@@ -62,19 +73,34 @@ const Feed = () => {
       console.error('Error adding post:', error);
     }
   };
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (<div className='flex justify-center items-center h-96'>
+      <Loader/>
+    </div>)
   }
 
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Feed</h1>
-      <button onClick={openModal} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+      <div className="flex justify-center mb-4">
+        <input
+          type="text"
+          placeholder="Search posts"
+          value={searchQuery}
+          onChange={handleSearch}
+          className="border border-gray-400 rounded px-4 py-2"
+        />
+      </div>
+      <button onClick={openModal} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mb-4 rounded">
         Add Post
       </button>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {posts.map((post) => (
+        {(searchQuery!=="" && searchResults.length===0 && <h1>No Posts Found for your search</h1>)}
+        {(searchQuery ? searchResults :posts).map((post) => (
           <Link key={post._id} to={`/post/${post._id}`}>
             <div className="bg-white shadow-lg rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition duration-300">
               <img

@@ -1,6 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import Loader from './Loader';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
 
-const Post = ({ post }) => {
+const Post = () => {
+  
+const {postId}=useParams()
+const [post,setPost]=useState([])
+const [loading,setLoading]=useState(true)
+// console.log(postId)
+const fetchPost = async () => {
+  try {
+    const response = await axios.get(`https://masai-forum-sy4l.onrender.com/api/posts/${postId}`);
+    setPost(response.data);
+    setLoading(false);
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    setLoading(false);
+  }
+};
+useEffect(()=>{
+  fetchPost()
+},[postId])
+  if (loading) {
+    return (<div className='flex justify-center items-center h-96'>
+      <Loader/>
+    </div>)
+  }
+  
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
